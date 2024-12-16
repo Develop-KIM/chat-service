@@ -3,8 +3,10 @@ package com.developkim.chatservice.service;
 import com.developkim.chatservice.entitites.Chatroom;
 import com.developkim.chatservice.entitites.Member;
 import com.developkim.chatservice.entitites.MemberChatroomMapping;
+import com.developkim.chatservice.entitites.Message;
 import com.developkim.chatservice.repositories.ChatroomRepository;
 import com.developkim.chatservice.repositories.MemberChatroomMappingRepository;
+import com.developkim.chatservice.repositories.MessageRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class ChatService {
 
     private final ChatroomRepository chatroomRepository;
     private final MemberChatroomMappingRepository memberChatroomMappingRepository;
+    private final MessageRepository messageRepository;
 
     public Chatroom createChatroom(Member member, String title) {
         Chatroom chatroom = Chatroom.builder()
@@ -71,5 +74,19 @@ public class ChatService {
         return memberChatroomMappingList.stream()
                 .map(MemberChatroomMapping::getChatroom)
                 .toList();
+    }
+
+    public Message saveMessage(Member member, Long chatroomId, String text) {
+        Chatroom chatroom = chatroomRepository.findById(chatroomId).get();
+
+        return messageRepository.save(Message.builder()
+                .text(text)
+                .member(member)
+                .chatroom(chatroom)
+                .build());
+    }
+
+    public List<Message> getMessageList(Long chatroomId) {
+        return messageRepository.findAllByChatroomId(chatroomId);
     }
 }

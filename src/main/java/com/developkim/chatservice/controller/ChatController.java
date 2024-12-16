@@ -1,7 +1,9 @@
 package com.developkim.chatservice.controller;
 
+import com.developkim.chatservice.dtos.ChatMessage;
 import com.developkim.chatservice.dtos.ChatroomDto;
 import com.developkim.chatservice.entitites.Chatroom;
+import com.developkim.chatservice.entitites.Message;
 import com.developkim.chatservice.service.ChatService;
 import com.developkim.chatservice.vos.CustomOAuth2User;
 import java.util.List;
@@ -45,6 +47,13 @@ public class ChatController {
 
         return chatroomList.stream()
                 .map(ChatroomDto::from)
+                .toList();
+    }
+
+    @GetMapping("/{chatroomId}/messages")
+    public List<ChatMessage> getMessageList(@PathVariable Long chatroomId) {
+        return chatService.getMessageList(chatroomId).stream()
+                .map(message -> new ChatMessage(message.getMember().getNickName(), message.getText()))
                 .toList();
     }
 }

@@ -45,21 +45,13 @@ function disconnect() {
 function sendMessage() {
   let chatroomId = $("#chatroom-id").val();
   stompClient.publish({
-    destination: "/pub/chats" + chatroomId, // 메시지를 발행할 경로
+    destination: "/pub/chats/" + chatroomId, // 메시지를 발행할 경로
     body: JSON.stringify({ // 발행할 메시지의 내용
       'message': $("#message").val() // 입력한 메시지
     })
   });
   // 메시지 입력 필드 초기화
   $("#message").val("")
-}
-
-// 수신된 메시지를 대화창에 표시하는 함수
-function showMessage(chatMessage) {
-  // 메시지를 테이블의 새로운 행으로 추가
-  $("#messages").append(
-      "<tr><td>" + chatMessage.sender + " : " + chatMessage.message
-      + "</td></tr>");
 }
 
 function createChatroom() {
@@ -70,7 +62,7 @@ function createChatroom() {
     success: function (data) {
       console.log('data: ', data);
       showChatrooms();
-      enterChatrooms(data.id, true);
+      enterChatroom(data.id, true);
     },
     error: function (request, status, error) {
       console.log('request: ', request);
@@ -109,8 +101,10 @@ function renderChatrooms(chatrooms) {
 
 let subscription;
 
-function enterChatrooms(chatroomId, newMember) {
+function enterChatroom(chatroomId, newMember) {
   $("#chatroom-id").val(chatroomId);
+  $("#messages").html("");
+  showMessages(chatroomId);
   $("#conversation").show();
   $("#send").prop("disabled", false);
   $("#leave").prop("disabled", false);
@@ -119,7 +113,7 @@ function enterChatrooms(chatroomId, newMember) {
     subscription.unsubscribe();
   }
 
-  subscription = stompClient.subscribe('/sub/chats' + chatroomId,
+  subscription = stompClient.subscribe('/sub/chats/' + chatroomId,
       (chatMessage) => {
         // 수신된 메시지를 화면에 표시
         showMessage(JSON.parse(chatMessage.body)); // 메시지 본문을 JSON으로 파싱하여 처리
@@ -128,12 +122,38 @@ function enterChatrooms(chatroomId, newMember) {
   if (newMember) {
     // 연결 후 특정 경로("/pub/chats")로 메시지를 발행하여 연결 메시지를 알림
     stompClient.publish({
-      destination: "/pub/chats", // 메시지 발행 경로
+      destination: "/pub/chats/" + chatroomId, // 메시지 발행 경로
       body: JSON.stringify({
         'message': "님이 방에 입장하였습니다."
       })
     })
   }
+}
+
+function showMessages(chatroomId) {
+  $.ajax({
+    type: 'GET',
+    dataType: 'json',
+    url: '/chats/' + chatroomId + '/messages',
+    success: function (data) {
+      console.log('data: ', data);
+      for (let i = 0; i < data.length; i++) {
+        showMessage(data[i]);
+      }
+    },
+    error: function (request, status, error) {
+      console.log('request: ', request);
+      console.log('error: ', error);
+    }
+  })
+}
+
+// 수신된 메시지를 대화창에 표시하는 함수
+function showMessage(chatMessage) {
+  // 메시지를 테이블의 새로운 행으로 추가
+  $("#messages").append(
+      "<tr><td>" + chatMessage.sender + " : " + chatMessage.message
+      + "</td></tr>");
 }
 
 function joinChatroom(chatroomId) {
@@ -143,7 +163,7 @@ function joinChatroom(chatroomId) {
     url: '/chats/' + chatroomId,
     success: function (data) {
       console.log('data: ', data);
-      enterChatrooms(chatroomId, data);
+      enterChatroom(chatroomId, data);
     },
     error: function (request, status, error) {
       console.log('request: ', request);
@@ -170,7 +190,7 @@ function leaveChatroom() {
   })
 }
 
-function  exitChatroom(chatroomId) {
+function exitChatroom(chatroomId) {
   $("#chatroom-id").val("");
   $("#conversation").hide();
   $("#send").prop("disabled", true);
