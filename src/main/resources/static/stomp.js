@@ -18,7 +18,6 @@ stompClient.onConnect = (frame) => {
   stompClient.publish({
     destination: "/pub/chats", // 메시지 발행 경로
     body: JSON.stringify({ // 발행할 메시지의 내용
-      'sender': $("#username").val(), // 유저 이름
       'message': "connected" // 연결 상태를 알리는 메시지
     })
   });
@@ -69,11 +68,9 @@ function sendMessage() {
   stompClient.publish({
     destination: "/pub/chats", // 메시지를 발행할 경로
     body: JSON.stringify({ // 발행할 메시지의 내용
-      'sender': $("#username").val(), // 유저 이름
       'message': $("#message").val() // 입력한 메시지
     })
   });
-
   // 메시지 입력 필드 초기화
   $("#message").val("")
 }

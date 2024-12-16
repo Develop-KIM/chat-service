@@ -1,9 +1,13 @@
 package com.developkim.chatservice.controller;
 
+import com.developkim.chatservice.dtos.ChatMessage;
+import java.security.Principal;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -22,10 +26,10 @@ public class StompChatController {
     // 클라이언트는 "/pub/chats"로 메시지를 발행하며, 이 메서드가 호출됩니다.
     @SendTo("/sub/chats")
     // 처리된 메시지를 "/sub/chats" 경로를 구독 중인 클라이언트에게 브로드캐스트합니다.
-    public String handleMessage(@Payload String message) {
-        log.info("{} received", message);
+    public ChatMessage handleMessage(@AuthenticationPrincipal Principal principal, @Payload Map<String, String> payload) {
+        log.info("{} sent {}", principal.getName(), payload);
 
         // 메시지를 그대로 반환하여 "/sub/chats"를 구독 중인 클라이언트들에게 전송합니다.
-        return message;
+        return new ChatMessage(principal.getName(), payload.get("message"));
     }
 }

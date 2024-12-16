@@ -18,7 +18,6 @@ public class StompConfiguration implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/stomp/chats");
     }
 
-
     /**
      * 메시지 브로커 설정을 구성
      * 메시지 발행 경로와 구독 경로를 정의하여 클라이언트와 서버 간 메시지 전달 방식을 설정
