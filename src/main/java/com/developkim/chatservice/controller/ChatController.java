@@ -3,7 +3,6 @@ package com.developkim.chatservice.controller;
 import com.developkim.chatservice.dtos.ChatMessage;
 import com.developkim.chatservice.dtos.ChatroomDto;
 import com.developkim.chatservice.entitites.Chatroom;
-import com.developkim.chatservice.entitites.Message;
 import com.developkim.chatservice.service.ChatService;
 import com.developkim.chatservice.vos.CustomOAuth2User;
 import java.util.List;
@@ -32,8 +31,9 @@ public class ChatController {
     }
 
     @PostMapping("/{chatroomId}")
-    public Boolean joinChatroom(@AuthenticationPrincipal CustomOAuth2User user, @PathVariable Long chatroomId) {
-        return chatService.joinChatroom(user.getMember(), chatroomId);
+    public Boolean joinChatroom(@AuthenticationPrincipal CustomOAuth2User user, @PathVariable Long chatroomId,
+            @RequestParam(required = false) Long currentChatroomId) {
+        return chatService.joinChatroom(user.getMember(), chatroomId, currentChatroomId);
     }
 
     @DeleteMapping("/{chatroomId}")

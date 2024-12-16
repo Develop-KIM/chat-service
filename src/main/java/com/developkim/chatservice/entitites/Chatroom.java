@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +31,15 @@ public class Chatroom {
 
     @OneToMany(mappedBy = "chatroom")
     private Set<MemberChatroomMapping> memberChatroomMappingSet;
+
+    @Transient
+    private Boolean hasNewMessage;
+
     private LocalDateTime createdAt;
+
+    public void setHasNewMessage(Boolean hasNewMessage) {
+        this.hasNewMessage = hasNewMessage;
+    }
 
     public MemberChatroomMapping addMember(Member member) {
         if (this.getMemberChatroomMappingSet() == null) {
