@@ -1,5 +1,6 @@
 package com.developkim.chatservice.controller;
 
+import com.developkim.chatservice.dtos.ChatroomDto;
 import com.developkim.chatservice.entitites.Chatroom;
 import com.developkim.chatservice.service.ChatService;
 import com.developkim.chatservice.vos.CustomOAuth2User;
@@ -24,8 +25,8 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping
-    public Chatroom createChatroom(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam String title) {
-        return chatService.createChatroom(user.getMember(), title);
+    public ChatroomDto createChatroom(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam String title) {
+        return ChatroomDto.from(chatService.createChatroom(user.getMember(), title));
     }
 
     @PostMapping("/{chatroomId}")
@@ -39,7 +40,11 @@ public class ChatController {
     }
 
     @GetMapping
-    public List<Chatroom> getChatroomList(@AuthenticationPrincipal CustomOAuth2User user) {
-        return chatService.getChatroomList(user.getMember());
+    public List<ChatroomDto> getChatroomList(@AuthenticationPrincipal CustomOAuth2User user) {
+        List<Chatroom> chatroomList = chatService.getChatroomList(user.getMember());
+
+        return chatroomList.stream()
+                .map(ChatroomDto::from)
+                .toList();
     }
 }

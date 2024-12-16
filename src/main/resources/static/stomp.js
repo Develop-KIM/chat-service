@@ -6,6 +6,7 @@ const stompClient = new StompJs.Client({
 // STOMP 연결 성공 시 호출되는 콜백 함수
 stompClient.onConnect = (frame) => {
   setConnected(true); // 연결 상태를 UI에 반영
+  showChatrooms();
   console.log('Connected: ' + frame); // 연결 성공 메시지 출력
 };
 
@@ -25,7 +26,7 @@ function setConnected(connected) {
   // 연결/해제 버튼 활성화 상태 변경
   $("#connect").prop("disabled", connected); // 연결 버튼 비활성화
   $("#disconnect").prop("disabled", !connected); // 해제 버튼 활성화
-  $("#create").prop("disabled", connected);
+  $("#create").prop("disabled", !connected);
 }
 
 // STOMP 연결을 활성화하는 함수
@@ -44,7 +45,7 @@ function disconnect() {
 function sendMessage() {
   let chatroomId = $("#chatroom-id").val();
   stompClient.publish({
-    destination: "/pub/chats", // 메시지를 발행할 경로
+    destination: "/pub/chats" + chatroomId, // 메시지를 발행할 경로
     body: JSON.stringify({ // 발행할 메시지의 내용
       'message': $("#message").val() // 입력한 메시지
     })
@@ -69,7 +70,7 @@ function createChatroom() {
     success: function (data) {
       console.log('data: ', data);
       showChatrooms();
-      enterChatrooms(data.id, ture);
+      enterChatrooms(data.id, true);
     },
     error: function (request, status, error) {
       console.log('request: ', request);
@@ -100,7 +101,7 @@ function renderChatrooms(chatrooms) {
       $("#chatroom-list").append(
           "<tr onclick='joinChatroom(" + chatrooms[i].id + ")'><td>"
           + chatrooms[i].id + "</td><td>" + chatrooms[i].title + "</td><td>"
-          + chatrooms[i].memberCount + "</td><td>" + chatrooms[i].createAt
+          + chatrooms[i].memberCount + "</td><td>" + chatrooms[i].createdAt
           + "</td></tr>"
       );
     }
@@ -108,7 +109,7 @@ function renderChatrooms(chatrooms) {
 
 let subscription;
 
-function enterChatroom(chatroomId, newMember) {
+function enterChatrooms(chatroomId, newMember) {
   $("#chatroom-id").val(chatroomId);
   $("#conversation").show();
   $("#send").prop("disabled", false);
@@ -142,7 +143,7 @@ function joinChatroom(chatroomId) {
     url: '/chats/' + chatroomId,
     success: function (data) {
       console.log('data: ', data);
-      enterChatroom(chatroomId, data);
+      enterChatrooms(chatroomId, data);
     },
     error: function (request, status, error) {
       console.log('request: ', request);
@@ -152,7 +153,7 @@ function joinChatroom(chatroomId) {
 }
 
 function leaveChatroom() {
-  let chatroomId = $("chatroom-id").val();
+  let chatroomId = $("#chatroom-id").val();
   $.ajax({
     type: 'DELETE',
     dataType: 'json',

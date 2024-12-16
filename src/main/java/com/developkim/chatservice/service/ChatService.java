@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,10 +28,7 @@ public class ChatService {
 
         chatroom = chatroomRepository.save(chatroom);
 
-        MemberChatroomMapping memberChatroomMapping = MemberChatroomMapping.builder()
-                .member(member)
-                .chatroom(chatroom)
-                .build();
+        MemberChatroomMapping memberChatroomMapping = chatroom.addMember(member);
 
         memberChatroomMapping = memberChatroomMappingRepository.save(memberChatroomMapping);
 
@@ -54,6 +52,7 @@ public class ChatService {
         return true;
     }
 
+    @Transactional
     public Boolean leaveChatroom(Member member, Long chatroomId) {
         if (!memberChatroomMappingRepository.existsByMemberIdAndChatroomId(member.getId(), chatroomId)) {
             log.info("참여하지 않은 방입니다.");
