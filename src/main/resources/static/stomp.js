@@ -7,20 +7,6 @@ const stompClient = new StompJs.Client({
 stompClient.onConnect = (frame) => {
   setConnected(true); // 연결 상태를 UI에 반영
   console.log('Connected: ' + frame); // 연결 성공 메시지 출력
-
-  // 특정 경로("/sub/chats")를 구독하여 메시지를 수신
-  stompClient.subscribe('/sub/chats', (chatMessage) => {
-    // 수신된 메시지를 화면에 표시
-    showMessage(JSON.parse(chatMessage.body)); // 메시지 본문을 JSON으로 파싱하여 처리
-  });
-
-  // 연결 후 특정 경로("/pub/chats")로 메시지를 발행하여 연결 메시지를 알림
-  stompClient.publish({
-    destination: "/pub/chats", // 메시지 발행 경로
-    body: JSON.stringify({ // 발행할 메시지의 내용
-      'message': "connected" // 연결 상태를 알리는 메시지
-    })
-  });
 };
 
 // WebSocket 연결 에러 발생 시 호출되는 콜백 함수
@@ -39,16 +25,7 @@ function setConnected(connected) {
   // 연결/해제 버튼 활성화 상태 변경
   $("#connect").prop("disabled", connected); // 연결 버튼 비활성화
   $("#disconnect").prop("disabled", !connected); // 해제 버튼 활성화
-
-  // 연결 상태에 따라 대화창 표시 여부 결정
-  if (connected) {
-    $("#conversation").show(); // 연결 시 대화창 표시
-  } else {
-    $("#conversation").hide(); // 해제 시 대화창 숨김
-  }
-
-  // 메시지 영역 초기화
-  $("#messages").html("");
+  $("#create").prop("disabled", connected);
 }
 
 // STOMP 연결을 활성화하는 함수
@@ -65,6 +42,7 @@ function disconnect() {
 
 // 메시지를 발행하는 함수
 function sendMessage() {
+  let chatroomId = $("#chatroom-id").val();
   stompClient.publish({
     destination: "/pub/chats", // 메시지를 발행할 경로
     body: JSON.stringify({ // 발행할 메시지의 내용
@@ -83,6 +61,121 @@ function showMessage(chatMessage) {
       + "</td></tr>");
 }
 
+function createChatroom() {
+  $.ajax({
+    type: 'POST',
+    dataType: 'json',
+    url: '/chats?title=' + $("#chatroom-title").val(),
+    success: function (data) {
+      console.log('data: ', data);
+      showChatrooms();
+      enterChatrooms(data.id, ture);
+    },
+    error: function (request, status, error) {
+      console.log('request: ', request);
+      console.log('error: ', error);
+    }
+  })
+}
+
+function showChatrooms() {
+    $.ajax({
+      type: 'GET',
+      dataType: 'json',
+      url: '/chats',
+      success: function (data) {
+        console.log('data: ', data);
+        renderChatrooms(data);
+      },
+      error: function (request, status, error) {
+        console.log('request: ', request);
+        console.log('error: ', error);
+      }
+    })
+}
+
+function renderChatrooms(chatrooms) {
+    $("#chatroom-list").html("");
+    for (let i = 0; i < chatrooms.length; i++) {
+      $("#chatroom-list").append(
+          "<tr onclick='joinChatroom(" + chatrooms[i].id + ")'><td>"
+          + chatrooms[i].id + "</td><td>" + chatrooms[i].title + "</td><td>"
+          + chatrooms[i].memberCount + "</td><td>" + chatrooms[i].createAt
+          + "</td></tr>"
+      );
+    }
+}
+
+let subscription;
+
+function enterChatroom(chatroomId, newMember) {
+  $("#chatroom-id").val(chatroomId);
+  $("#conversation").show();
+  $("#send").prop("disabled", false);
+  $("#leave").prop("disabled", false);
+
+  if (subscription != undefined) {
+    subscription.unsubscribe();
+  }
+
+  subscription = stompClient.subscribe('/sub/chats' + chatroomId,
+      (chatMessage) => {
+        // 수신된 메시지를 화면에 표시
+        showMessage(JSON.parse(chatMessage.body)); // 메시지 본문을 JSON으로 파싱하여 처리
+      });
+
+  if (newMember) {
+    // 연결 후 특정 경로("/pub/chats")로 메시지를 발행하여 연결 메시지를 알림
+    stompClient.publish({
+      destination: "/pub/chats", // 메시지 발행 경로
+      body: JSON.stringify({
+        'message': "님이 방에 입장하였습니다."
+      })
+    })
+  }
+}
+
+function joinChatroom(chatroomId) {
+  $.ajax({
+    type: 'POST',
+    dataType: 'json',
+    url: '/chats/' + chatroomId,
+    success: function (data) {
+      console.log('data: ', data);
+      enterChatroom(chatroomId, data);
+    },
+    error: function (request, status, error) {
+      console.log('request: ', request);
+      console.log('error: ', error);
+    }
+  })
+}
+
+function leaveChatroom() {
+  let chatroomId = $("chatroom-id").val();
+  $.ajax({
+    type: 'DELETE',
+    dataType: 'json',
+    url: '/chats/' + chatroomId,
+    success: function (data) {
+      console.log('data: ', data);
+      showChatrooms();
+      exitChatroom(chatroomId);
+    },
+    error: function (request, status, error) {
+      console.log('request: ', request);
+      console.log('error: ', error);
+    }
+  })
+}
+
+function  exitChatroom(chatroomId) {
+  $("#chatroom-id").val("");
+  $("#conversation").hide();
+  $("#send").prop("disabled", true);
+  $("#leave").prop("disabled", true);
+}
+
 // 페이지 로드 시 이벤트 핸들러 등록
 $(function () {
   // 폼 제출 이벤트를 막아 새로고침 방지
@@ -94,6 +187,9 @@ $(function () {
   // 해제 버튼 클릭 시 연결 해제 함수 호출
   $("#disconnect").click(() => disconnect());
 
+  $("#create").click(() => createChatroom());
+  $("#leave").click(() => leaveChatroom());
   // 전송 버튼 클릭 시 메시지 전송 함수 호출
   $("#send").click(() => sendMessage());
 });
+
