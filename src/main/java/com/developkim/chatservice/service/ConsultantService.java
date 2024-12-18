@@ -2,11 +2,15 @@ package com.developkim.chatservice.service;
 
 import static com.developkim.chatservice.enums.Role.CONSULTANT;
 
+import com.developkim.chatservice.dtos.ChatroomDto;
 import com.developkim.chatservice.dtos.MemberDto;
 import com.developkim.chatservice.entitites.Member;
 import com.developkim.chatservice.enums.Role;
+import com.developkim.chatservice.repositories.ChatroomRepository;
 import com.developkim.chatservice.repositories.MemberRepository;
 import com.developkim.chatservice.vos.CustomUserDetails;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,10 +21,11 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class CustomUserDetailsService implements UserDetailsService {
+public class ConsultantService implements UserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
+    private final ChatroomRepository chatroomRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -38,5 +43,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         member.updatePassword(memberDto.password(), memberDto.confirmedPassword(), passwordEncoder);
 
         return MemberDto.from(memberRepository.save(member));
+    }
+
+    public List<ChatroomDto> getAllChatrooms() {
+        return chatroomRepository.findAll().stream()
+                .map(ChatroomDto::from)
+                .toList();
     }
 }

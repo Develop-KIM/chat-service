@@ -30,7 +30,7 @@ public class SecurityConfiguration {
                 .securityMatcher("/consultants/**", "/login")
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(HttpMethod.POST, "/consultants").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().hasRole("CONSULTANT")
                 )
                 .formLogin(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable());

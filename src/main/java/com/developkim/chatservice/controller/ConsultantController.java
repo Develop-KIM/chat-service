@@ -1,7 +1,9 @@
 package com.developkim.chatservice.controller;
 
+import com.developkim.chatservice.dtos.ChatroomDto;
 import com.developkim.chatservice.dtos.MemberDto;
-import com.developkim.chatservice.service.CustomUserDetailsService;
+import com.developkim.chatservice.service.ConsultantService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -17,16 +19,22 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class ConsultantController {
 
-    private final CustomUserDetailsService customUserDetailsService;
+    private final ConsultantService consultantService;
 
     @ResponseBody
     @PostMapping
     public MemberDto saveMember(@RequestBody MemberDto memberDto) {
-        return customUserDetailsService.saveMember(memberDto);
+        return consultantService.saveMember(memberDto);
     }
 
     @GetMapping
     public String index() {
         return "consultants/index.html";
+    }
+
+    @ResponseBody
+    @GetMapping("/chats")
+    public List<ChatroomDto> getAllChatrooms() {
+        return consultantService.getAllChatrooms();
     }
 }
