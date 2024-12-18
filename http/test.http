@@ -1,0 +1,16 @@
+POST http://localhost:8080/consultants
+Content-Type: application/json
+
+{
+  "email": "consultants@service.com",
+  "nickName": "consultant",
+  "name" : "상담전문가",
+  "password": "password",
+  "confirmedPassword": "password",
+  "gender": "MALE",
+  "phoneNumber": "8201023451234",
+  "birthday": "2000-01-24",
+  "role": "ROLE_CONSULTANT"
+}
+
+###

@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Builder
 @Getter
@@ -28,9 +29,18 @@ public class Member {
     private String email;
     private String nickName;
     private String name;
+    private String password;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private String phoneNumber;
     private LocalDate birthDay;
     private String role;
+
+    public void updatePassword(String password, String confirmedPassword, PasswordEncoder passwordEncoder) {
+        if (!password.equals(confirmedPassword)) {
+            throw new IllegalArgumentException("패스워드가 일치하지 않습니다.");
+        }
+        this.password = passwordEncoder.encode(password);
+    }
 }
