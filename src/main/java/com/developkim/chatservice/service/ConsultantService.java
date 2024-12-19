@@ -35,7 +35,7 @@ public class ConsultantService implements UserDetailsService {
             throw new AccessDeniedException("상담사가 아닙니다.");
         }
 
-        return new CustomUserDetails(member);
+        return new CustomUserDetails(member, null);
     }
 
     public MemberDto saveMember(MemberDto memberDto) {

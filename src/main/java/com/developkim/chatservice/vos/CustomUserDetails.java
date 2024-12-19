@@ -3,32 +3,29 @@ package com.developkim.chatservice.vos;
 import com.developkim.chatservice.entitites.Member;
 import java.util.Collection;
 import java.util.List;
-import lombok.AllArgsConstructor;
+import java.util.Map;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-@AllArgsConstructor
-public class CustomUserDetails implements UserDetails {
+public class CustomUserDetails extends CustomOAuth2User implements UserDetails {
 
-    private Member member;
-
-    public Member getMember() {
-        return this.member;
+    public CustomUserDetails(Member member, Map<String, Object> attributes) {
+        super(member, attributes);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(member.getRole()));
+        return List.of(new SimpleGrantedAuthority(getMember().getRole()));
     }
 
     @Override
     public String getPassword() {
-        return this.member.getPassword();
+        return this.getMember().getPassword();
     }
 
     @Override
     public String getUsername() {
-        return this.member.getName();
+        return this.getMember().getName();
     }
 }
