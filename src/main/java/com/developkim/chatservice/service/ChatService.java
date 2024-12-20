@@ -1,5 +1,6 @@
 package com.developkim.chatservice.service;
 
+import com.developkim.chatservice.dtos.ChatroomDto;
 import com.developkim.chatservice.entitites.Chatroom;
 import com.developkim.chatservice.entitites.Member;
 import com.developkim.chatservice.entitites.MemberChatroomMapping;
@@ -105,5 +106,10 @@ public class ChatService {
 
     public List<Message> getMessageList(Long chatroomId) {
         return messageRepository.findAllByChatroomId(chatroomId);
+    }
+
+    @Transactional(readOnly = true)
+    public ChatroomDto getChatroom(Long chatroomId) {
+        return ChatroomDto.from(chatroomRepository.findById(chatroomId).get());
     }
 }

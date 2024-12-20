@@ -9,9 +9,9 @@ import com.developkim.chatservice.enums.Role;
 import com.developkim.chatservice.repositories.ChatroomRepository;
 import com.developkim.chatservice.repositories.MemberRepository;
 import com.developkim.chatservice.vos.CustomUserDetails;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -45,9 +45,9 @@ public class ConsultantService implements UserDetailsService {
         return MemberDto.from(memberRepository.save(member));
     }
 
-    public List<ChatroomDto> getAllChatrooms() {
-        return chatroomRepository.findAll().stream()
-                .map(ChatroomDto::from)
-                .toList();
+    public Page<ChatroomDto> getChatroomPage(Pageable pageable) {
+        return chatroomRepository
+                .findAll(pageable)
+                .map(ChatroomDto::from);
     }
 }
